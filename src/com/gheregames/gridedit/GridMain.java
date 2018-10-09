@@ -22,10 +22,11 @@ public class GridMain implements ActionListener {
 	private static int NUM_ROWS = 5;
 	private static int NUM_COLS = 8;
 	
+	Animator an;
 	// Declare class member variables to keep track of the UI controls on the JFrame
 	private Animation animation;
 	private int currentFrame = 0;
-	private int maxFrames = 2;
+	private int maxFrames = 1;
 	private int[][] copyBuffer;
 	
 	
@@ -49,6 +50,7 @@ public class GridMain implements ActionListener {
 	private JButton stopButton;
 	private JButton forwardButton;
 	private JButton backButton;
+	private JButton addFrameButton;
 	private JLabel frameNumberLabel;
 	private JLabel maxFramesLabel;
 	
@@ -71,8 +73,6 @@ public class GridMain implements ActionListener {
 	}
 	public GridMain()
 	{
-		
-		
 		// Create new JFrame and set the title. 
 		myFrame = new JFrame();
 		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -105,7 +105,7 @@ public class GridMain implements ActionListener {
 		
 		JPanel pathTextBoxPanel = new JPanel();
 		pathTextBoxPanel.add(new JLabel("Path:"));
-		pathTextField = new JTextField("E:\\animFiles\\", 15);
+		pathTextField = new JTextField("G:\\animFiles\\", 15);
 		pathTextBoxPanel.add(pathTextField);
 		pathTextBoxPanel.add(new JLabel("Filename:"));
 		filenameTextField = new JTextField(defaultFilename, 10);
@@ -133,6 +133,9 @@ public class GridMain implements ActionListener {
 		backButton.addActionListener(this);
 		//backButton.setEnabled(animationCheckBox.isSelected());
 		animControlPanel.add(backButton);
+		stopButton = new JButton("[]");
+		stopButton.addActionListener(this);
+		animControlPanel.add(stopButton);
 		playButton = new JButton(">");
 		playButton.addActionListener(this);
 		//playButton.setEnabled(animationCheckBox.isSelected());
@@ -147,7 +150,14 @@ public class GridMain implements ActionListener {
 		animControlPanel.add(frameNumberLabel);
 		maxFramesLabel = new JLabel("" + maxFrames);
 		animControlPanel.add(maxFramesLabel);
+
+		addFrameButton = new JButton("+");
+		addFrameButton.addActionListener(this);
+		animControlPanel.add(addFrameButton);
+		animControlPanel.add(new JLabel("Add Frame"));
+		
 		animPanel.add(animControlPanel);
+
 		mainPanel.add(animPanel);
 		
 		boardPanel = new JPanel();
@@ -304,7 +314,7 @@ public class GridMain implements ActionListener {
 				SetLEDGrid();
 				copyBuffer = null;
 				//System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData());
-			} catch(IOException e) { e.toString(); }
+			} catch(Exception e) { e.toString(); }
 		}
 		else if(src == saveButton)
 		{
@@ -353,9 +363,24 @@ public class GridMain implements ActionListener {
 			setFrameLabel();
 			SetLEDGrid();
 		}
+		else if(src == stopButton)
+		{
+			if(an != null)
+			{
+				an.SetRun(false);
+				currentFrame = an.GetLastFrame();
+				an = null;
+				SetLEDGrid();
+			}
+		}
 		else if(src == playButton)
 		{
-			System.out.println("Play");
+			if(an == null)
+			{
+				an = new Animator(animation, ledGrid, currentFrame);
+				Thread t = new Thread(an);
+				t.start();
+			}
 		}
 		else if(src == forwardButton)
 		{
@@ -369,17 +394,15 @@ public class GridMain implements ActionListener {
 			//  and set to ledGrid
 			SetLEDGrid();
 		}
-		/*else if(src == maxFramesTextField)
+		else if(src == addFrameButton)
 		{
-			JTextField tfield = (JTextField)src;
-			maxFrames = Integer.parseInt(tfield.getText());
-			if(currentFrame > maxFrames)
-			{
-				currentFrame = maxFrames;
-				setFrameLabel();
-			}
-			System.out.println("maxFrames: " + maxFrames);
-		}*/
+			maxFrames++;
+			maxFramesLabel.setText("" + maxFrames);
+			animation.AddFrame(currentFrame + 1);
+			incrementFrame();
+			SetLEDGrid();
+			
+		}
 		else 
 		{
 			Color color = colorChooser.getColor();
@@ -433,6 +456,15 @@ public class GridMain implements ActionListener {
 		}
 		}
 		
+	}
+	
+	private void incrementFrame()
+	{
+		currentFrame++;
+		if(currentFrame > maxFrames)
+			currentFrame = 0;
+		setFrameLabel();
+		SetLEDGrid();
 	}
 	
 	private void setFrameLabel()

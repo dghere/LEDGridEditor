@@ -20,7 +20,10 @@ public class Animation {
 	{
 		animation.add(new AnimFrame(numRows, numCols));
 	}
-	
+	public void AddFrame(int num)
+	{
+		animation.add(num, new AnimFrame(numRows, numCols));
+	}
 	public void AddFrame(AnimFrame frame)
 	{
 		animation.add(frame);
