@@ -19,8 +19,8 @@ import javax.swing.event.ChangeListener;
 
 public class GridMain implements ActionListener {
 	
-	private static int NUM_ROWS = 5;
-	private static int NUM_COLS = 8;
+	private static int NUM_ROWS = 10;
+	private static int NUM_COLS = 16;
 	
 	Animator an;
 	// Declare class member variables to keep track of the UI controls on the JFrame
