@@ -1,21 +1,25 @@
 package com.gheregames.gridedit;
-
+//v1.01
 import java.awt.Color;
+
+import javax.swing.JLabel;
 
 public class Animator implements Runnable {
 	private boolean run = true;
 	private Animation animation;
 	private LEDGrid ledGrid;
+	private JLabel frameNumberLabel;
 	
 	private int currentFrame;
 	private int endFrame;
 	
-	public Animator(Animation anim, LEDGrid grid, int cFrame)
+	public Animator(Animation anim, LEDGrid grid, int cFrame, JLabel fnl)
 	{
 		animation = anim;
 		ledGrid = grid;
 		currentFrame = cFrame;
 		endFrame = anim.GetAnimation().size();
+		frameNumberLabel = fnl;
 	}
 	@Override
 	public void run() {
@@ -27,6 +31,7 @@ public class Animator implements Runnable {
 			currentFrame++;
 			if(currentFrame > endFrame-1)
 				currentFrame = 0;
+			SetFrameLabel();
 			SetLEDGrid();
 			Thread.sleep(100);}catch(Exception e){}
 		}
@@ -48,5 +53,10 @@ public class Animator implements Runnable {
 				
 			}
 		}
+	}
+	
+	private void SetFrameLabel()
+	{
+		frameNumberLabel.setText(""+ (currentFrame + 1) + " of ");
 	}
 }

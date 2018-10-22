@@ -1,5 +1,5 @@
 package com.gheregames.gridedit;
-
+//v1.01
 public class AnimFrame {
 	
 	private int[][] animFrame;
@@ -36,6 +36,23 @@ public class AnimFrame {
 			for(int c =0; c < numCols; c++)
 			{
 				s += String.format("0x%06X", animFrame[r][c]) + " ";
+			}
+			s += "\n";
+		}
+		return s;
+	}
+	
+	public String GetAnimFrameData(boolean reverse)
+	{
+		String s = "";
+		for(int r = 0; r < numRows; r++)
+		{
+			for(int c =0; c < numCols; c++)
+			{
+				if(reverse && r % 2 == 1)
+					s += String.format("0x%06X", animFrame[r][numCols-1-c]) + " ";
+				else
+					s += String.format("0x%06X", animFrame[r][c]) + " ";
 			}
 			s += "\n";
 		}

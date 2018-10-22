@@ -1,5 +1,5 @@
 package com.gheregames.gridedit;
-
+// v1.01
 import java.awt.Color;
 
 import java.awt.FlowLayout;
@@ -19,7 +19,7 @@ import javax.swing.event.ChangeListener;
 
 public class GridMain implements ActionListener {
 	
-	private static int NUM_ROWS = 10;
+	private static int NUM_ROWS = 8;
 	private static int NUM_COLS = 16;
 	
 	Animator an;
@@ -63,7 +63,8 @@ public class GridMain implements ActionListener {
 	
 	private JColorChooser colorChooser;
 	
-	private String defaultFilename = "animtest.dat";
+	private String drive = "G:";
+	private String defaultFilename = "ScrollGhost16x4.dat";
 	
 	//private BorderFactory raisedetched;
 	
@@ -105,7 +106,7 @@ public class GridMain implements ActionListener {
 		
 		JPanel pathTextBoxPanel = new JPanel();
 		pathTextBoxPanel.add(new JLabel("Path:"));
-		pathTextField = new JTextField("G:\\animFiles\\", 15);
+		pathTextField = new JTextField(drive + "\\animFiles\\", 15);
 		pathTextBoxPanel.add(pathTextField);
 		pathTextBoxPanel.add(new JLabel("Filename:"));
 		filenameTextField = new JTextField(defaultFilename, 10);
@@ -164,7 +165,7 @@ public class GridMain implements ActionListener {
 		animation = new Animation(NUM_ROWS, NUM_COLS);
 		for(int i = 0; i < maxFrames; i++)
 			animation.AddFrame();
-		System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData());
+		System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData(false));
 		ledGrid = new LEDGrid(NUM_ROWS, NUM_COLS, boardPanel,this);
 		mainPanel.add(boardPanel);
 		
@@ -249,95 +250,11 @@ public class GridMain implements ActionListener {
 		}
 		else if(src == loadButton)
 		{
-			try
-			{
-				String fullPath = pathTextField.getText()  + filenameTextField.getText();
-				System.out.println("Load: " + fullPath);
-				Scanner infile = new Scanner(new File(fullPath));
-				
-				//  Get number of frames, rows and columns
-				maxFrames = infile.nextInt();
-				NUM_ROWS = infile.nextInt();
-				NUM_COLS = infile.nextInt();
-				
-				System.out.println("fra: " + maxFrames);
-				System.out.println("rows: " + NUM_ROWS);
-				System.out.println("cols: " + NUM_COLS);
-				animation = new Animation(NUM_ROWS, NUM_COLS);
-				for(int i = 0; i < maxFrames; i++)
-					animation.AddFrame();
-				System.out.println("Animatiom frames length: " + animation.GetAnimation().size());
-				//ledGrid = new LEDGrid(NUM_ROWS, NUM_COLS, boardPanel,this);
-				//int frame =0;
-				infile.nextLine();
-				for(int frame = 0; frame < maxFrames; frame++)
-				{
-					System.out.println("Reading Frame: " + frame + " :: Rows: " + NUM_ROWS);
-				for(int i = 0; i < NUM_ROWS; i++)
-				{
-					String dataIn = infile.nextLine();
-					System.out.println("row: " + i + " :: " + dataIn);
-					Scanner chop = new Scanner(dataIn);
-					int col = 0;
-					List<Integer> rowList = new ArrayList<Integer>();
-					while(chop.hasNext())
-					{
-						String data = chop.next();
-						//System.out.print(data + " ");
-						if(reverseCheckBox.isSelected() && i % 2 == 1)
-							rowList.add(0, Integer.decode(data));
-						else
-							rowList.add(Integer.decode(data));
-												
-						col++;
-					}
-					col = 0;
-					//  data is now in a row set the current led grid.
-					//  also, set the appropriate row in the anim frame.
-					for(int number : rowList)
-					{
-						
-						animation.GetFrame(frame).SetRowCol(i, col, number);
-						col++;
-					}
-					//infile.nextLine();
-					
-					//System.out.println();
-					
-				}
-				if(infile.hasNextLine())
-					infile.nextLine();
-				//frame++;
-				}
-				infile.close();
-				maxFramesLabel.setText(""+maxFrames);
-				SetLEDGrid();
-				copyBuffer = null;
-				//System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData());
-			} catch(Exception e) { e.toString(); }
+			LoadFile();
 		}
 		else if(src == saveButton)
 		{
-			String fullPath = pathTextField.getText() + filenameTextField.getText();
-			System.out.println("Save: " + fullPath);
-			//System.out.print(ledGrid.getHexGrid(reverseCheckBox.isSelected()));
-			try
-			{
-				PrintWriter out = new PrintWriter(fullPath);
-				//  gethexGrid gets the entire grid as a string...
-				//  So, the equivalent for animFrame will be used instead.
-				//out.println(ledGrid.getHexGrid(reverseCheckBox.isSelected()));
-				System.out.println(maxFrames);
-				out.println(maxFrames + " " + NUM_ROWS + " " + NUM_COLS);
-				for(int frame = 0; frame < maxFrames; frame++)
-				{
-					System.out.println(animation.GetFrame(frame).GetAnimFrameData());
-					out.println(animation.GetFrame(frame).GetAnimFrameData());
-				}
-				out.flush();
-				out.close();
-				
-			} catch(IOException e) { e.toString(); }
+			SaveFile();
 		}
 		else if(src == clearButton)
 		{
@@ -347,12 +264,6 @@ public class GridMain implements ActionListener {
 		else if(src == animationCheckBox)
 		{
 			System.out.println("Animation: " + animationCheckBox.isSelected());
-			/*backButton.setVisible(animationCheckBox.isSelected());
-			backButton.setEnabled(animationCheckBox.isSelected());
-			playButton.setVisible(animationCheckBox.isSelected());
-			playButton.setEnabled(animationCheckBox.isSelected());
-			forwardButton.setVisible(animationCheckBox.isSelected());
-			forwardButton.setEnabled(animationCheckBox.isSelected());*/
 			animControlPanel.setVisible(animationCheckBox.isSelected());
 		}
 		else if(src == backButton)
@@ -377,7 +288,7 @@ public class GridMain implements ActionListener {
 		{
 			if(an == null)
 			{
-				an = new Animator(animation, ledGrid, currentFrame);
+				an = new Animator(animation, ledGrid, currentFrame, frameNumberLabel);
 				Thread t = new Thread(an);
 				t.start();
 			}
@@ -409,9 +320,99 @@ public class GridMain implements ActionListener {
 			LED led = ledGrid.getClickedSquare(src);
 			led.setLED(color);
 			animation.GetFrame(currentFrame).SetRowCol(led.GetRow(), led.GetCol(), color.getRGB() & 0x00ffffff);
-			System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData());
+			//System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData(false));
 			//System.out.println("Col: " + ledGrid.getClickedSquare(src).getHexColorRGB());
 		}
+	}
+	private void SaveFile() {
+		String fullPath = pathTextField.getText() + filenameTextField.getText();
+		System.out.println("Save: " + fullPath);
+		//System.out.print(ledGrid.getHexGrid(reverseCheckBox.isSelected()));
+		try
+		{
+			PrintWriter out = new PrintWriter(fullPath);
+			//  gethexGrid gets the entire grid as a string...
+			//  So, the equivalent for animFrame will be used instead.
+			//out.println(ledGrid.getHexGrid(reverseCheckBox.isSelected()));
+			System.out.println(maxFrames);
+			out.println(maxFrames + " " + NUM_ROWS + " " + NUM_COLS);
+			for(int frame = 0; frame < maxFrames; frame++)
+			{
+				System.out.println(animation.GetFrame(frame).GetAnimFrameData());
+				out.println(animation.GetFrame(frame).GetAnimFrameData(reverseCheckBox.isSelected()));
+			}
+			out.flush();
+			out.close();
+			
+		} catch(IOException e) { e.toString(); }
+	}
+	private void LoadFile() {
+		try
+		{
+			String fullPath = pathTextField.getText()  + filenameTextField.getText();
+			System.out.println("Load: " + fullPath);
+			Scanner infile = new Scanner(new File(fullPath));
+			
+			//  Get number of frames, rows and columns
+			maxFrames = infile.nextInt();
+			NUM_ROWS = infile.nextInt();
+			NUM_COLS = infile.nextInt();
+			
+			System.out.println("fra: " + maxFrames);
+			System.out.println("rows: " + NUM_ROWS);
+			System.out.println("cols: " + NUM_COLS);
+			animation = new Animation(NUM_ROWS, NUM_COLS);
+			for(int i = 0; i < maxFrames; i++)
+				animation.AddFrame();
+			System.out.println("Animatiom frames length: " + animation.GetAnimation().size());
+			//ledGrid = new LEDGrid(NUM_ROWS, NUM_COLS, boardPanel,this);
+			//int frame =0;
+			infile.nextLine();
+			for(int frame = 0; frame < maxFrames; frame++)
+			{
+				System.out.println("Reading Frame: " + frame + " :: Rows: " + NUM_ROWS);
+			for(int i = 0; i < NUM_ROWS; i++)
+			{
+				String dataIn = infile.nextLine();
+				System.out.println("row: " + i + " :: " + dataIn);
+				Scanner chop = new Scanner(dataIn);
+				int col = 0;
+				List<Integer> rowList = new ArrayList<Integer>();
+				while(chop.hasNext())
+				{
+					String data = chop.next();
+					//System.out.print(data + " ");
+					if(reverseCheckBox.isSelected() && i % 2 == 1)
+						rowList.add(0, Integer.decode(data));
+					else
+						rowList.add(Integer.decode(data));
+											
+					col++;
+				}
+				col = 0;
+				//  data is now in a row set the current led grid.
+				//  also, set the appropriate row in the anim frame.
+				for(int number : rowList)
+				{
+					
+					animation.GetFrame(frame).SetRowCol(i, col, number);
+					col++;
+				}
+				//infile.nextLine();
+				
+				//System.out.println();
+				
+			}
+			if(infile.hasNextLine())
+				infile.nextLine();
+			//frame++;
+			}
+			infile.close();
+			maxFramesLabel.setText(""+maxFrames);
+			SetLEDGrid();
+			copyBuffer = null;
+			//System.out.println(animation.GetFrame(currentFrame).GetAnimFrameData());
+		} catch(Exception e) { e.toString(); }
 	}
 	private void SetLEDGrid() {
 		for(int r = 0; r < NUM_ROWS; r++)
