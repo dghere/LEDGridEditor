@@ -1,5 +1,5 @@
 package com.gheregames.gridedit;
-// v1.01
+// v1.01 - 10.22
 import java.awt.Color;
 
 import java.awt.FlowLayout;
