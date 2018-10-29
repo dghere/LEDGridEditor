@@ -43,6 +43,8 @@ public class GridMain implements ActionListener {
 	
 	private JButton copyButton;
 	private JButton pasteButton;
+	private JButton shiftLeftButton;
+	private JButton shiftRightButton;
 	
 	private JPanel animControlPanel;
 	private JCheckBox animationCheckBox;
@@ -63,7 +65,7 @@ public class GridMain implements ActionListener {
 	
 	private JColorChooser colorChooser;
 	
-	private String drive = "G:";
+	private String drive = "E:";
 	private String defaultFilename = "ScrollGhost16x4.dat";
 	
 	//private BorderFactory raisedetched;
@@ -170,7 +172,9 @@ public class GridMain implements ActionListener {
 		mainPanel.add(boardPanel);
 		
 		JPanel editPanel = new JPanel();
+		editPanel.setLayout(new BoxLayout(editPanel, BoxLayout.PAGE_AXIS));
 		editPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED), "Edit Tools"));
+		JPanel copyPastePanel = new JPanel();
 		copyButton = new JButton("Copy Frame");
 		copyButton.addActionListener(new ActionListener()
     	{
@@ -181,7 +185,7 @@ public class GridMain implements ActionListener {
     			
     		}
     	});
-		editPanel.add(copyButton);
+		copyPastePanel.add(copyButton);
 		pasteButton = new JButton("Paste Frame");
 		pasteButton.addActionListener(new ActionListener()
     	{
@@ -192,7 +196,34 @@ public class GridMain implements ActionListener {
     			
     		}
     	});
-		editPanel.add(pasteButton);
+		copyPastePanel.add(pasteButton);
+		editPanel.add(copyPastePanel);
+		JPanel shiftPanel = new JPanel();
+		shiftLeftButton = new JButton("Shift Left");
+		shiftLeftButton.addActionListener(new ActionListener()
+    	{
+    		public void actionPerformed(ActionEvent ev)
+    		{
+    			//shiftLeft
+    			ShiftFrameLeft();
+    			System.out.println("Shift Left");
+    			
+    		}
+    	});
+		shiftPanel.add(shiftLeftButton);
+		shiftRightButton = new JButton("Shift Right");
+		shiftRightButton.addActionListener(new ActionListener()
+    	{
+    		public void actionPerformed(ActionEvent ev)
+    		{
+    			//shiftRight
+    			ShiftFrameRight();
+    			System.out.println("Shift Right");
+    			
+    		}
+    	});
+		shiftPanel.add(shiftRightButton);
+		editPanel.add(shiftPanel);
 		mainPanel.add(editPanel);
 		
 		JPanel colorSelector = new JPanel();
@@ -446,17 +477,43 @@ public class GridMain implements ActionListener {
 		//...
 		if(copyBuffer != null)
 		{
-		for(int r = 0; r < NUM_ROWS; r++)
-		{
-			for(int c = 0; c < NUM_COLS; c++)
+			for(int r = 0; r < NUM_ROWS; r++)
 			{
-				AnimFrame currFrame = animation.GetFrame(currentFrame);
-				currFrame.SetRowCol(r, c, copyBuffer[r][c]);
-				ledGrid.setLED(r,  c, new Color(copyBuffer[r][c]));
+				for(int c = 0; c < NUM_COLS; c++)
+				{
+					AnimFrame currFrame = animation.GetFrame(currentFrame);
+					currFrame.SetRowCol(r, c, copyBuffer[r][c]);
+					ledGrid.setLED(r,  c, new Color(copyBuffer[r][c]));
+				}
 			}
 		}
-		}
 		
+	}
+	
+	private void ShiftFrameLeft()
+	{
+		for(int r = 0; r < NUM_ROWS; r++)
+		{
+			for(int c = 0; c < NUM_COLS - 1; c++)
+			{
+				AnimFrame currFrame = animation.GetFrame(currentFrame);
+				currFrame.SetRowCol(r, c, currFrame.GetRowCol(r, c + 1));
+				ledGrid.setLED(r,  c, new Color(currFrame.GetRowCol(r, c)));
+			}
+		}
+	}
+	
+	private void ShiftFrameRight()
+	{
+		for(int r = 0; r < NUM_ROWS; r++)
+		{
+			for(int c = NUM_COLS - 1; c > 0; c--)
+			{
+				AnimFrame currFrame = animation.GetFrame(currentFrame);
+				currFrame.SetRowCol(r, c, currFrame.GetRowCol(r, c - 1));
+				ledGrid.setLED(r,  c, new Color(currFrame.GetRowCol(r, c)));
+			}
+		}
 	}
 	
 	private void incrementFrame()
